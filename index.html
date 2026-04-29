@@ -917,8 +917,7 @@
             const hour = now.getHours();
 
             // Simple reminder logic: remind at 9am, 11am, 1pm, 3pm, 5pm, 7pm, 9pm
-            const reminderHours = [9, 11, 13, 15, 17, 19, 21];
-            if (reminderHours.includes(hour) && now.getMinutes() === 0) {
+            if (currentWater < dailyGoal) {
                 showToast('💧 Time to drink water!');
             }
         }
