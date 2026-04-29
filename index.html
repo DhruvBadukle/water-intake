@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Water Intake Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 100%;
+            max-width: 390px;
+            height: 844px;
+            background: white;
+            border-radius: 50px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.15), 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 35px;
+            background: #1a1a1a;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            z-index: 50;
+        }
+
+        .screen-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: 60px;
+            padding-bottom: 100px;
+            scrollbar-width: none;
+        }
+        .screen-content::-webkit-scrollbar { display: none; }
+
+        /* Water bottle animation */
+        .bottle-container {
+            position: relative;
+            width: 220px;
+            height: 320px;
+            margin: 0 auto;
+        }
+
+        .bottle-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, #e8e8ff 0%, #d4d4ff 100%);
+            border-radius: 40px;
+            overflow: hidden;
+        }
+
+        .bottle-cap {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 40px;
+            background: linear-gradient(180deg, #8b7cf7 0%, #6b5ce7 100%);
+            border-radius: 12px;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(107,92,231,0.3);
+        }
+
+        .bottle-cap::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 12px;
+            background: linear-gradient(180deg, #a69bf9 0%, #8b7cf7 100%);
+            border-radius: 6px;
+        }
+
+        .water-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #6366f1 0%, #4f46e5 50%, #4338ca 100%);
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .water-fill::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -50%;
+            width: 200%;
+            height: 30px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            animation: wave 3s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-25%) translateY(3px); }
+        }
+
+        .bubbles {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            animation: rise 4s ease-in infinite;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.6; }
+            100% { transform: translateY(-300px) scale(0.5); opacity: 0; }
+        }
+
+        .character {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 120px;
+            z-index: 5;
+        }
+
+        .character-body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+            border-radius: 50% 50% 45% 45%;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .character-face {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 40px;
+        }
+
+        .eye {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            top: 5px;
+        }
+        .eye.left { left: 8px; }
+        .eye.right { right: 8px; }
+
+        .eye::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #1e1b4b;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+        }
+
+        .mouth {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 8px;
+            border: 2px solid white;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .hat {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 25px;
+            background: linear-gradient(180deg, #818cf8 0%, #6366f1 100%);
+            border-radius: 25px 25px 0 0;
+        }
+
+        .hat::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: -5px;
+            right: -5px;
+            height: 8px;
+            background: #4f46e5;
+            border-radius: 4px;
+        }
+
+        .arms {
+            position: absolute;
+            top: 45%;
+            width: 100%;
+        }
+
+        .arm {
+            position: absolute;
+            width: 30px;
+            height: 40px;
+            background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+            border-radius: 15px;
+            top: 0;
+        }
+        .arm.left { left: -15px; transform: rotate(-20deg); }
+        .arm.right { right: -15px; transform: rotate(20deg); }
+
+        /* Progress ring */
+        .progress-ring-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+
+        .progress-ring-svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke: #f3f4f6;
+            stroke-width: 12;
+        }
+
+        .progress-ring-fill {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 565.48;
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Glass buttons */
+        .glass-btn {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 20px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            min-width: 80px;
+        }
+
+        .glass-btn:active {
+            transform: scale(0.95);
+            background: #f9fafb;
+        }
+
+        .glass-btn.selected {
+            border-color: #818cf8;
+            background: #eef2ff;
+        }
+
+        /* Bottom nav */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #f3f4f6;
+            padding: 16px 32px 32px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 40;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #9ca3af;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: #4f46e5;
+        }
+
+        .nav-item.center-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(79,70,229,0.4);
+            margin-top: -20px;
+        }
+
+        /* Add button pulse */
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(79,70,229,0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(79,70,229,0); }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        /* Page transitions */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Confetti */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(400px) rotate(720deg); opacity: 0; }
+        }
+
+        /* History item */
+        .history-item {
+            background: white;
+            border: 1px solid #f3f4f6;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Settings toggle */
+        .toggle {
+            width: 50px;
+            height: 28px;
+            background: #e5e7eb;
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.active {
+            background: #4f46e5;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .toggle.active::after {
+            transform: translateX(22px);
+        }
+
+        /* Notification toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #1f2937;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="notch"></div>
+
+        <!-- Toast Notification -->
+        <div class="toast" id="toast">Water logged! 💧</div>
+
+        <!-- HOME PAGE -->
+        <div class="page active" id="page-home">
+            <div class="screen-content px-6">
+                <div class="text-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-1">Good Morning!</h1>
+                    <p class="text-gray-500 text-sm">Stay hydrated today</p>
+                </div>
+
+                <!-- Water Bottle Visualization -->
+                <div class="bottle-container mb-6">
+                    <div class="bottle-cap"></div>
+                    <div class="bottle-bg">
+                        <div class="water-fill" id="waterFill" style="height: 0%;">
+                            <div class="bubbles" id="bubbles"></div>
+                        </div>
+
+                        <!-- 3D Character -->
+                        <div class="character">
+                            <div class="character-body">
+                                <div class="hat"></div>
+                                <div class="character-face">
+                                    <div class="eye left"></div>
+                                    <div class="eye right"></div>
+                                    <div class="mouth"></div>
+                                </div>
+                                <div class="arms">
+                                    <div class="arm left"></div>
+                                    <div class="arm right"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="text-center mb-8">
+                    <div class="text-5xl font-bold text-gray-900 mb-1" id="currentAmount">0</div>
+                    <div class="text-gray-500 text-sm">of <span id="goalAmount">2500</span> ml goal</div>
+                    <div class="mt-2 inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-semibold">
+                        <i data-lucide="droplets" class="w-3 h-3"></i>
+                        <span id="remaining">2500</span> ml remaining
+                    </div>
+                </div>
+
+                <!-- Quick Add Buttons -->
+                <div class="mb-6">
+                    <p class="text-sm font-semibold text-gray-700 mb-3 px-1">Quick Add</p>
+                    <div class="flex justify-between gap-3">
+                        <button class="glass-btn flex-1" onclick="addWater(150)" id="btn-150">
+                            <i data-lucide="coffee" class="w-6 h-6 text-amber-500"></i>
+                            <span class="text-xs font-semibold text-gray-700">150 ml</span>
+                        </button>
+                        <button class="glass-btn flex-1 selected" onclick="addWater(250)" id="btn-250">
+                            <i data-lucide="glass-water" class="w-6 h-6 text-blue-500"></i>
+                            <span class="text-xs font-semibold text-gray-700">250 ml</span>
+                        </button>
+                        <button class="glass-btn flex-1" onclick="addWater(500)" id="btn-500">
+                            <i data-lucide="cup-soda" class="w-6 h-6 text-purple-500"></i>
+                            <span class="text-xs font-semibold text-gray-700">500 ml</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Today's Summary -->
+                <div class="bg-gray-50 rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-semibold text-gray-700">Today's Progress</span>
+                        <span class="text-xs text-indigo-600 font-semibold" id="percentText">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between mt-2 text-xs text-gray-400">
+                        <span>0 ml</span>
+                        <span id="goalText">2500 ml</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS PAGE -->
+        <div class="page" id="page-stats">
+            <div class="screen-content px-6">
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-1">Current Hydration</h1>
+                    <p class="text-gray-500 text-sm">Keep up the good work!</p>
+                </div>
+
+                <!-- Circular Progress -->
+                <div class="progress-ring-container mb-8">
+                    <svg class="progress-ring-svg" width="200" height="200">
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#818cf8"/>
+                                <stop offset="100%" style="stop-color:#a78bfa"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="progress-ring-bg" cx="100" cy="100" r="90"/>
+                        <circle class="progress-ring-fill" cx="100" cy="100" r="90" id="progressCircle"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-4xl font-bold text-gray-900" id="circlePercent">0%</span>
+                        <span class="text-sm text-gray-500 mt-1" id="circleAmount">0 ml</span>
+                        <span class="text-xs text-indigo-500 mt-1 font-medium" id="circleRemaining">-2500 ml</span>
+                    </div>
+                </div>
+
+                <!-- Amount Options -->
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button class="glass-btn" onclick="addWater(250)">
+                        <i data-lucide="droplet" class="w-5 h-5 text-blue-500"></i>
+                        <span class="text-sm font-semibold text-gray-700">250 ml</span>
+                    </button>
+                    <button class="glass-btn" onclick="addWater(500)">
+                        <i data-lucide="flask-conical" class="w-5 h-5 text-purple-500"></i>
+                        <span class="text-sm font-semibold text-gray-700">500 ml</span>
+                    </button>
+                    <button class="glass-btn" onclick="addWater(180)">
+                        <i data-lucide="mug" class="w-5 h-5 text-amber-600"></i>
+                        <span class="text-sm font-semibold text-gray-700">180 ml</span>
+                    </button>
+                    <button class="glass-btn" onclick="addWater(250)">
+                        <i data-lucide="glass-water" class="w-5 h-5 text-pink-400"></i>
+                        <span class="text-sm font-semibold text-gray-700">250 ml</span>
+                    </button>
+                </div>
+
+                <!-- Weekly Chart -->
+                <div class="bg-gray-50 rounded-2xl p-4">
+                    <p class="text-sm font-semibold text-gray-700 mb-4">This Week</p>
+                    <div class="flex items-end justify-between h-32 gap-2" id="weekChart">
+                        <!-- Bars generated by JS -->
+                    </div>
+                    <div class="flex justify-between mt-2 text-xs text-gray-400">
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY PAGE -->
+        <div class="page" id="page-history">
+            <div class="screen-content px-6">
+                <div class="text-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-1">History</h1>
+                    <p class="text-gray-500 text-sm">Your hydration records</p>
+                </div>
+
+                <div id="historyList">
+                    <!-- History items generated by JS -->
+                </div>
+
+                <div class="text-center py-8 text-gray-400 text-sm" id="emptyHistory">
+                    <i data-lucide="clipboard-list" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+                    <p>No records yet today</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS PAGE -->
+        <div class="page" id="page-settings">
+            <div class="screen-content px-6">
+                <div class="text-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-1">Settings</h1>
+                    <p class="text-gray-500 text-sm">Customize your tracker</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-2xl p-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Daily Goal (ml)</label>
+                        <input type="range" min="1000" max="4000" step="100" value="2500" id="goalSlider" 
+                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                               oninput="updateGoal(this.value)">
+                        <div class="flex justify-between mt-2 text-xs text-gray-500">
+                            <span>1000</span>
+                            <span class="font-bold text-indigo-600" id="goalValue">2500 ml</span>
+                            <span>4000</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700">Reminders</p>
+                            <p class="text-xs text-gray-500">Every 2 hours if goal not met</p>
+                        </div>
+                        <div class="toggle active" id="reminderToggle" onclick="toggleReminders()"></div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700">Sound Effects</p>
+                            <p class="text-xs text-gray-500">Play sound when logging</p>
+                        </div>
+                        <div class="toggle active" id="soundToggle" onclick="toggleSound()"></div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-2xl p-4">
+                        <p class="text-sm font-semibold text-gray-700 mb-3">Reset Data</p>
+                        <button onclick="resetData()" class="w-full py-3 bg-red-50 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-100 transition">
+                            Clear All History
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchPage('home')">
+                <i data-lucide="droplet" class="w-6 h-6"></i>
+            </div>
+            <div class="nav-item" onclick="switchPage('stats')">
+                <i data-lucide="bar-chart-2" class="w-6 h-6"></i>
+            </div>
+            <div class="nav-item center-btn pulse-animation" onclick="quickAdd()">
+                <i data-lucide="plus" class="w-7 h-7"></i>
+            </div>
+            <div class="nav-item" onclick="switchPage('history')">
+                <i data-lucide="history" class="w-6 h-6"></i>
+            </div>
+            <div class="nav-item" onclick="switchPage('settings')">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentWater = 0;
+        let dailyGoal = 2500;
+        let history = [];
+        let remindersEnabled = true;
+        let soundEnabled = true;
+        let selectedAmount = 250;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            createBubbles();
+            generateWeekChart();
+            loadData();
+            updateUI();
+
+            // Check for reminders every minute
+            setInterval(checkReminders, 60000);
+        });
+
+        function createBubbles() {
+            const container = document.getElementById('bubbles');
+            for (let i = 0; i < 8; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.width = (Math.random() * 10 + 5) + 'px';
+                bubble.style.height = bubble.style.width;
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDelay = Math.random() * 4 + 's';
+                bubble.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                container.appendChild(bubble);
+            }
+        }
+
+        function generateWeekChart() {
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const container = document.getElementById('weekChart');
+            const data = [65, 80, 45, 90, 70, 55, currentWater / dailyGoal * 100];
+
+            days.forEach((day, i) => {
+                const bar = document.createElement('div');
+                bar.className = 'flex-1 bg-indigo-100 rounded-t-lg relative group';
+                bar.style.height = '100%';
+
+                const fill = document.createElement('div');
+                fill.className = 'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-indigo-500 to-purple-400 rounded-t-lg transition-all duration-500';
+                fill.style.height = data[i] + '%';
+
+                bar.appendChild(fill);
+                container.appendChild(bar);
+            });
+        }
+
+        function addWater(amount) {
+            currentWater += amount;
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            history.unshift({
+                amount: amount,
+                time: timeStr,
+                timestamp: now.getTime()
+            });
+
+            if (soundEnabled) playSound();
+            showToast(`+${amount}ml logged! 💧`);
+            createConfetti();
+
+            if (currentWater >= dailyGoal) {
+                setTimeout(() => showToast('🎉 Daily goal reached!'), 500);
+            }
+
+            saveData();
+            updateUI();
+            updateWeekChart();
+        }
+
+        function quickAdd() {
+            addWater(selectedAmount);
+        }
+
+        function updateUI() {
+            const percent = Math.min((currentWater / dailyGoal) * 100, 100);
+            const remaining = Math.max(dailyGoal - currentWater, 0);
+
+            // Home page
+            document.getElementById('currentAmount').textContent = currentWater.toLocaleString();
+            document.getElementById('goalAmount').textContent = dailyGoal.toLocaleString();
+            document.getElementById('remaining').textContent = remaining.toLocaleString();
+            document.getElementById('waterFill').style.height = percent + '%';
+            document.getElementById('percentText').textContent = Math.round(percent) + '%';
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('goalText').textContent = dailyGoal.toLocaleString() + ' ml';
+
+            // Stats page
+            const circumference = 2 * Math.PI * 90;
+            const offset = circumference - (percent / 100) * circumference;
+            document.getElementById('progressCircle').style.strokeDashoffset = offset;
+            document.getElementById('circlePercent').textContent = Math.round(percent) + '%';
+            document.getElementById('circleAmount').textContent = currentWater.toLocaleString() + ' ml';
+            document.getElementById('circleRemaining').textContent = (remaining > 0 ? '-' : '+') + Math.abs(remaining).toLocaleString() + ' ml';
+
+            // History
+            updateHistory();
+        }
+
+        function updateHistory() {
+            const list = document.getElementById('historyList');
+            const empty = document.getElementById('emptyHistory');
+
+            if (history.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            list.innerHTML = history.map((item, i) => `
+                <div class="history-item">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center">
+                            <i data-lucide="glass-water" class="w-5 h-5 text-indigo-500"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900">${item.amount} ml</p>
+                            <p class="text-xs text-gray-500">${item.time}</p>
+                        </div>
+                    </div>
+                    <button onclick="deleteEntry(${i})" class="text-gray-400 hover:text-red-500 transition">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function deleteEntry(index) {
+            currentWater -= history[index].amount;
+            if (currentWater < 0) currentWater = 0;
+            history.splice(index, 1);
+            saveData();
+            updateUI();
+        }
+
+        function updateWeekChart() {
+            const bars = document.querySelectorAll('#weekChart > div > div');
+            if (bars.length >= 7) {
+                const todayPercent = Math.min((currentWater / dailyGoal) * 100, 100);
+                bars[6].style.height = todayPercent + '%';
+            }
+        }
+
+        function switchPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Re-render icons for new page
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        function updateGoal(value) {
+            dailyGoal = parseInt(value);
+            document.getElementById('goalValue').textContent = value + ' ml';
+            saveData();
+            updateUI();
+        }
+
+        function toggleReminders() {
+            remindersEnabled = !remindersEnabled;
+            document.getElementById('reminderToggle').classList.toggle('active');
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').classList.toggle('active');
+        }
+
+        function resetData() {
+            if (confirm('Clear all history? This cannot be undone.')) {
+                currentWater = 0;
+                history = [];
+                saveData();
+                updateUI();
+                showToast('All data cleared');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function createConfetti() {
+            const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+            for (let i = 0; i < 20; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '50%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animation = `confetti-fall ${Math.random() * 1 + 1}s ease-out forwards`;
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                document.querySelector('.phone-frame').appendChild(confetti);
+                setTimeout(() => confetti.remove(), 2000);
+            }
+        }
+
+        function playSound() {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZSA0PVanu8LdnHQUuh9Dz2YU2Bhxqv+zplkcODVGm5O+4ZSAEMYrO89GFNwYdcfDr4ZdJDQtPp+XysWUeBjiS1/LNfi0GI33R8tOENAcdcO/r4phJDQxPp+TwxGUhBjqT1/PQfS4GI3/R8tSFNwYdcfDr4plHDAtQp+TwxmUgBDeOz/PShjYGHG3A7+SaSQ0MTKjl8sZmIAU2jc7z1YU1Bhxwv+zmm0gNC1Gn5O/EZSAFNo/M89CEMwYccPDs4ppIDQtRp+TvvWUfBTiOz/PShjUGG3Dw7OKbSA0LUqjl8b1kHwU3jM/z0oU1Bxtw8OzhmUgNC1Ko5fG+ZSAF');
+            audio.volume = 0.3;
+            audio.play().catch(() => {});
+        }
+
+        function checkReminders() {
+            if (!remindersEnabled || currentWater >= dailyGoal) return;
+
+            const now = new Date();
+            const hour = now.getHours();
+
+            // Simple reminder logic: remind at 9am, 11am, 1pm, 3pm, 5pm, 7pm, 9pm
+            const reminderHours = [9, 11, 13, 15, 17, 19, 21];
+            if (reminderHours.includes(hour) && now.getMinutes() === 0) {
+                showToast('💧 Time to drink water!');
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('waterTracker', JSON.stringify({
+                currentWater,
+                dailyGoal,
+                history,
+                lastDate: new Date().toDateString()
+            }));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('waterTracker');
+            if (saved) {
+                const data = JSON.parse(saved);
+                // Reset if new day
+                if (data.lastDate !== new Date().toDateString()) {
+                    currentWater = 0;
+                    history = [];
+                } else {
+                    currentWater = data.currentWater || 0;
+                    history = data.history || [];
+                }
+                dailyGoal = data.dailyGoal || 2500;
+                document.getElementById('goalSlider').value = dailyGoal;
+                document.getElementById('goalValue').textContent = dailyGoal + ' ml';
+            }
+        }
+    </script>
+</body>
+</html>
